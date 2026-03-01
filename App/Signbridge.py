@@ -26,7 +26,36 @@ import numpy as np
 import time
 import textwrap
 from collections import deque, Counter
-from signs import classify_ngt
+from signs.features      import get_lm, finger_states, norm_lm, tip_dist, palm_open, wrist_angle
+from signs.groeten       import SIGNS as _GROETEN
+from signs.basiswoorden  import SIGNS as _BASISWOORDEN
+from signs.kwaliteit     import SIGNS as _KWALITEIT
+from signs.voornaamwoorden import SIGNS as _VOORNAAMWOORDEN
+from signs.context       import SIGNS as _CONTEXT
+from signs.getallen      import SIGNS as _GETALLEN
+from signs.overig        import SIGNS as _OVERIG
+
+_ALL_SIGNS = (
+    _GROETEN + _BASISWOORDEN + _KWALITEIT + _VOORNAAMWOORDEN
+    + _CONTEXT + _GETALLEN + _OVERIG
+)
+
+
+def classify_ngt(hl):
+    lm  = get_lm(hl)
+    f   = finger_states(lm)
+    th, ix, mi, ri, pi = f
+    def td(i, j): return tip_dist(lm, i, j)
+    po  = palm_open(lm)
+    wa  = wrist_angle(lm)
+    nlm = norm_lm(lm)
+    kwargs = dict(lm=lm, th=th, ix=ix, mi=mi, ri=ri, pi=pi,
+                  td=td, po=po, wa=wa, nlm=nlm)
+    for check_fn in _ALL_SIGNS:
+        result = check_fn(**kwargs)
+        if result:
+            return result
+    return None
 
 # ── MediaPipe – compatibel met 0.8 t/m 0.10 ──────────────────────────────────
 try:
