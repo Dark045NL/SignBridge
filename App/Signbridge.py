@@ -26,6 +26,7 @@ import numpy as np
 import time
 import textwrap
 from collections import deque, Counter
+from signs import classify_ngt
 
 # ── MediaPipe – compatibel met 0.8 t/m 0.10 ──────────────────────────────────
 try:
@@ -78,94 +79,6 @@ STABIEL_FRAMES  = 20
 STABIEL_DREMPEL = 0.62
 PAUZE_SECONDEN  = 1.4
 COOLDOWN        = 1.5
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  Feature extractie
-# ══════════════════════════════════════════════════════════════════════════════
-
-def get_lm(hl):
-    return np.array([[lm.x, lm.y, lm.z] for lm in hl.landmark])
-
-def finger_states(lm):
-    tips  = [4, 8, 12, 16, 20]
-    pips  = [3, 6, 10, 14, 18]
-    thumb = lm[tips[0]][0] < lm[pips[0]][0]
-    r     = [thumb]
-    for i in range(1, 5):
-        r.append(lm[tips[i]][1] < lm[pips[i]][1])
-    return r
-
-def norm_lm(lm):
-    origin = lm[0]
-    scale  = np.linalg.norm(lm[9] - lm[0]) + 1e-6
-    return (lm - origin) / scale
-
-def tip_dist(lm, i, j):
-    tips = [4, 8, 12, 16, 20]
-    hs   = np.linalg.norm(lm[9] - lm[0]) + 1e-6
-    return np.linalg.norm(lm[tips[i]] - lm[tips[j]]) / hs
-
-def palm_open(lm):
-    tips = [8, 12, 16, 20]
-    hs   = np.linalg.norm(lm[9] - lm[0]) + 1e-6
-    return np.mean([np.linalg.norm(lm[t] - lm[0]) for t in tips]) / hs
-
-def wrist_angle(lm):
-    v = lm[9] - lm[0]
-    return np.degrees(np.arctan2(v[0], -v[1]))
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  NGT Gebaar-classifier (25 woorden)
-# ══════════════════════════════════════════════════════════════════════════════
-
-def classify_ngt(hl):
-    lm  = get_lm(hl)
-    f   = finger_states(lm)
-    th, ix, mi, ri, pi = f
-    def td(i, j): return tip_dist(lm, i, j)
-    po  = palm_open(lm)
-    wa  = wrist_angle(lm)
-    nlm = norm_lm(lm)
-
-    if ix and mi and ri and pi and th and po > 1.4:            return "HALLO"
-    if ix and mi and ri and pi and not th and po > 1.2:        return "DAG"
-    if ix and mi and not ri and not pi and not th and td(1,2) < 0.6: return "TOT_ZIENS"
-    if ix and mi and ri and pi and not th and po < 1.3:        return "BEDANKT"
-    if th and not ix and not mi and not ri and not pi:
-        if lm[4][1] < lm[3][1]:                               return "GRAAG_GEDAAN"
-    if not ix and not mi and not ri and not pi and not th:
-        if po < 0.6:                                           return "JA"
-    if ix and mi and not ri and not pi and not th and td(1,2) > 0.7: return "NEE"
-    if ix and mi and ri and pi and th and po > 1.0 and nlm[9][1] < 0: return "HELP"
-    if ix and mi and ri and pi and not th:
-        if abs(wa) < 20:                                       return "STOP"
-    if th and not ix and not mi and not ri and not pi:
-        if lm[4][1] > lm[3][1]:                               return "GOED"
-    if th and not ix and not mi and not ri and not pi:
-        if lm[4][1] > lm[2][1] + 0.05:                        return "SLECHT"
-    if not ix and not mi and not ri and not pi:
-        if td(0,1) < 0.35 and td(0,2) < 0.45:                 return "MEER"
-    if not ix and not mi and not ri and not pi and not th:
-        if po > 0.6:                                           return "MINDER"
-    if ix and not mi and not ri and not pi and not th:
-        if lm[8][0] < lm[5][0] + 0.05:                        return "IK"
-    if ix and not mi and not ri and not pi and not th:
-        if lm[8][0] > lm[5][0] + 0.05:                        return "JIJ"
-    if ix and mi and ri and pi and th and po > 1.1 and abs(wa) > 25: return "WIJ"
-    if not ix and not mi and not ri and not pi and th:
-        if td(0,1) < 0.4:                                      return "NAAM"
-    if not ix and not mi and not ri and not pi and th:
-        if lm[4][0] > lm[8][0]:                               return "SCHOOL"
-    if ix and not mi and not ri and not pi and th:             return "LEREN"
-    if ix and mi and ri and not pi and not th:                 return "WERKEN"
-    if ix and mi and ri and not pi and th:                     return "WATER"
-    if ix and not mi and not ri and not pi and not th:         return "EEN"
-    if ix and mi and not ri and not pi and not th and td(1,2) < 0.55: return "TWEE"
-    if ix and mi and ri and not pi and not th:                 return "DRIE"
-    if not ix and not mi and not ri and pi and th:             return "VRAAG"
-    return None
 
 
 # ══════════════════════════════════════════════════════════════════════════════
