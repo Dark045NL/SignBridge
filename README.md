@@ -49,7 +49,7 @@ inclusieve technologie en toegankelijkheid.
 ## Installatie
 
 ``` bash
-git clone https://github.com/gebruikersnaam/repository-naam.git
+git clone https://github.com/Dark045NL/SignBridge
 cd repository-naam
 pip install -r requirements.txt
 python main.py
