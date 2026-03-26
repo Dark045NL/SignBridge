@@ -1,5 +1,7 @@
 opencv-python>=4.8.0
 mediapipe>=0.10.9
 numpy>=1.24.0
-pyttsx3>=2.90
-pywin32>=306
+# Spraak (kies één):
+pywin32>=306       # Windows  → beste optie
+# pyttsx3>=2.90   # Fallback  → pip install pyttsx3
+# espeak          # Linux     → sudo apt install espeak

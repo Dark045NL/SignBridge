@@ -1,32 +1,35 @@
 # SignBridge
-**NGT Gebarentaal → Live Transcriptie**
-Zuyd Hogeschool | Lectoraat Data Intelligence
+NGT Gebarentaal → Live Transcriptie | Zuyd Hogeschool
 
 ## Installatie
 ```bash
-pip install -r requirements.txt
+pip install opencv-python mediapipe numpy
+pip install pywin32        # Windows spraak
 ```
 
 ## Starten
 ```bash
-cd App
-python SignBridge.py
+cd App && python SignBridge.py
 ```
 
-## TTS (spraak)
-- **Windows**: `pip install pywin32`  ← beste optie, gebruikt Windows SAPI
-- **macOS**: werkt automatisch via `say`
-- **Linux**: `sudo apt install espeak`
-- Fallback: `pip install pyttsx3`
+## Structuur
+```
+App/
+├── SignBridge.py          # hoofdlus        ~150 regels
+├── ui.py                  # tekenfuncties   ~275 regels
+├── tts.py                 # spraak          ~85  regels
+├── gebaren_classifier.py  # herkenning      ~365 regels
+└── gebaren/               # 25 PNG kaartjes
+```
 
 ## Bediening
 | Toets | Actie |
 |-------|-------|
-| `F` | fullscreen toggle |
-| `G` / `ESC` | gebarenreferentie aan/uit |
-| `N` / `P` | volgend / vorig gebaar |
-| `+` / `-` | delay verhogen / verlagen |
-| `M` | spraak aan/uit |
-| `BACKSPACE` | wis laatste woord |
-| `C` | wis transcriptie |
-| `Q` | afsluiten |
+| F | fullscreen toggle |
+| G / ESC | gebaren-referentie |
+| N / P | navigeer gebaren |
+| + / - | delay aanpassen |
+| M | spraak aan/uit |
+| BACKSPACE | wis woord |
+| C | wis alles |
+| Q | afsluiten |
